@@ -5,8 +5,14 @@
 >Base spark and machine learning.
 
 ## Introduction 
-
+![Haruluya](https://img.shields.io/badge/X-Haruluya-brightgreen)
 ## Development Environment
+| <img width=50/>Modules <img width=50/> | <img width=50/>Version  <img width=50/>| <img width=50/>Directory<img width=50/>|
+| -------| ------- | --------|
+| ✅Spark |  |  |
+| ✅MongoDB    |   |       |
+| ✅kafka   |         |  |
+| ✅scala   |         |    |
 
 ## Deployment method
 
