@@ -13,6 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>cloud_loading_data</module>
+        <module>cloud_offline_rec</module>
     </modules>
 
     <properties>
