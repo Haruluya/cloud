@@ -9,10 +9,10 @@
 ## Development Environment
 | <img width=50/>Modules <img width=50/> | <img width=50/>Version  <img width=50/>| <img width=50/>Directory<img width=50/>|
 | -------| ------- | --------|
-| ✅Spark |  |  |
-| ✅MongoDB    |   |       |
-| ✅kafka   |         |  |
-| ✅scala   |         |    |
+| ✅Spark |  2.1.1 | |
+| ✅MongoDB    | 2.0.0  |       |
+| ✅kafka   |   0.10      |  |
+| ✅scala   |   2.11.8      |    |
 
 ## Deployment method
 

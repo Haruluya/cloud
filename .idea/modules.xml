@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/Cloud.iml" filepath="$PROJECT_DIR$/.idea/Cloud.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cloud_rec/cloud_ALS_rec/cloud_ALS_rec.iml" filepath="$PROJECT_DIR$/cloud_rec/cloud_ALS_rec/cloud_ALS_rec.iml" />
       <module fileurl="file://$PROJECT_DIR$/cloud_rec/cloud_loading_data/cloud_loading_data.iml" filepath="$PROJECT_DIR$/cloud_rec/cloud_loading_data/cloud_loading_data.iml" />
       <module fileurl="file://$PROJECT_DIR$/cloud_rec/cloud_offline_rec/cloud_offline_rec.iml" filepath="$PROJECT_DIR$/cloud_rec/cloud_offline_rec/cloud_offline_rec.iml" />
       <module fileurl="file://$PROJECT_DIR$/cloud_rec/cloud_rec.iml" filepath="$PROJECT_DIR$/cloud_rec/cloud_rec.iml" />
