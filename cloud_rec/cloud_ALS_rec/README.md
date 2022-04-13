@@ -28,7 +28,13 @@
 
 ![[公式]](https://www.zhihu.com/equation?tex=J%28U%2CV%29+%3D+%5Csum_%7Bi%7D%5E%7Bm%7D+%5Csum_%7Bj%7D%5E%7Bn%7D%5B%28r_%7Bij%7D+-+u_iv_j%5ET%29+%5E2+%2B+%5Clambda+%28+%7C%7Cu_i%7C%7C%5E2+%2B+%7C%7Cv_j%7C%7C%5E2+%29+%5D+%5C%5C)
 
+#### 参数取值
 
+如何寻找适合的隐语义模型的rank,iterations,lambda三个参数？通常的做法是计算均方根误差（RMSE），考察预测评分与实际评分之间的误差。
+
+​![img](src/main/resources/iamges/wps2FB8.tmp.jpg) 
+
+有了RMSE，我们可以就可以通过多次调整参数值，来选取RMSE最小的一组作为我们模型的优化选择。
 
 #### Spark中实现
 
@@ -79,6 +85,41 @@ org.apache.spark.mllib.recommendation.MatrixFactorizationModel
 
 
 
+### RMSE
+
+基于RMSE获取合适的ALS算法参数。
+
+**主要步骤**
+
+计算RMSE：
+
+```scala
+  val userProducts = data.map(item => (item.user,item.product))
+  val predictRating = model.predict(userProducts)
+val real = data.map(item => ((item.user,item.product),item.rating))
+  val predict = predictRating.map(item => ((item.user,item.product),item.rating))
+  // 计算RMSE
+  sqrt(
+    real.join(predict).map{case ((userId,productId),(real,pre))=>
+      val err = real - pre
+      err * err
+    }.mean()
+  )
+```
+
+获取合适的参数：
+
+```scala
+  val result = for(rank <- Array(100,200,250); lambda <- Array(1, 0.1, 0.01, 0.001))
+    yield {
+      val model = ALS.train(trainData,rank,10,lambda)
+      val rmse = getRMSE(model, testData)
+      (rank,lambda,rmse)
+    }
+```
+
+
+
 ### CLOUD_REC_USER
 
 获取的用户推荐集合。统计每个商品对用户的期望评分值。该集合可以直接作为离线推荐数据。
@@ -96,7 +137,6 @@ val alsTrainedData = ratingRDD.map(x=>Rating(x._1,x._2,x._3))
 **训练模型：**
 
 ```scala
-val ( rank, iterations, lambda ) = ( 5, 10, 0.01 )
 val model = ALS.train( alsTrainedData, rank, iterations, lambda )
 ```
 
@@ -146,9 +186,9 @@ val preRating = model.predict(userProducts)
 
 V(n x k)表示物品特征矩阵，每一行是一个 k 维向量，虽然我们并不知道每一个维度的特征意义是什么，但是k 个维度的数学向量表示了该行对应商品的特征。
 
-所以，每个商品用V(n x k)每一行的![img](file:///C:\Users\24558\AppData\Local\Temp\ksohtml\wps6D9B.tmp.jpg)向量表示其特征，于是任意两个商品 p：特征向量为![img](file:///C:\Users\24558\AppData\Local\Temp\ksohtml\wps6D9C.tmp.jpg)，商品q：特征向量为![img](file:///C:\Users\24558\AppData\Local\Temp\ksohtml\wps6DAD.tmp.jpg)之间的相似度sim(p,q)可以使用![img](file:///C:\Users\24558\AppData\Local\Temp\ksohtml\wps6DAE.tmp.jpg)和![img](file:///C:\Users\24558\AppData\Local\Temp\ksohtml\wps6DBF.tmp.jpg)的余弦值来表示：
+所以，每个商品用V(n x k)每一行的![img](src/main/resources/iamges/wps6D9B.tmp.jpg)向量表示其特征，于是任意两个商品 p：特征向量为![img](src/main/resources/iamges/wps6D9C.tmp.jpg)，商品q：特征向量为![img](src/main/resources/iamges/wps6DAD.tmp.jpg)之间的相似度sim(p,q)可以使用![img](src/main/resources/iamges/wps6DAE.tmp.jpg)和![img](src/main/resources/iamges/wps6DBF.tmp.jpg)的余弦值来表示：
 
-![img](file:///C:\Users\24558\AppData\Local\Temp\ksohtml\wps6DC0.tmp.jpg) 
+![img](src/main/resources/iamges/wps6DC0.tmp.jpg) 
 
 数据集中任意两个商品间相似度都可以由公式计算得到，商品与商品之间的相似度在一段时间内基本是固定值。
 

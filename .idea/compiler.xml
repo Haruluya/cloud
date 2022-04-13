@@ -7,14 +7,16 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="cloud_ALS_rec" />
-        <module name="cloud_loading_data" />
         <module name="cloud_offline_rec" />
+        <module name="cloud_data_load" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Cloud" target="1.8" />
       <module name="cloud_ALS_rec" target="1.8" />
-      <module name="cloud_loading_data" target="1.8" />
+      <module name="cloud_data_load" target="1.8" />
+      <module name="cloud_data_loading" target="1.8" />
+      <module name="cloud_loading_data" target="8" />
       <module name="cloud_offline_rec" target="1.8" />
       <module name="cloud_rec" target="1.8" />
     </bytecodeTargetLevel>

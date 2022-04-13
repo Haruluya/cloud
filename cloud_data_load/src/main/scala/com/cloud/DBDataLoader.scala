@@ -1,13 +1,12 @@
 package com.cloud
 
-import com.mongodb.casbah.commons.MongoDBObject
-import com.mongodb.casbah.{MongoClient, MongoClientURI}
+import com.mongodb.casbah.Imports.{MongoClient, MongoClientURI, MongoDBObject}
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
-
 /**
  * 数据加载类，将数据源数据存储到数据库中。
+ *
  * @author haruluya 2022/4/14
  */
 object DBDataLoader {
@@ -32,43 +31,42 @@ object DBDataLoader {
     val spark = SparkSession.builder().config(sparkConf).getOrCreate()
     import spark.implicits._
 
-
     // 加载数据
     val cloud_productRDD = spark.sparkContext.textFile(CLOUD_PRODUCT_DATA_PATH)
-    val cloud_productDF = cloud_productRDD.map( item => {
+    val cloud_productDF = cloud_productRDD.map(item => {
       val attr = item.split("\\^")
       // 转换成实体类。
-      Cloud_Product( attr(0).toInt, attr(1).trim, attr(4).trim, attr(5).trim, attr(6).trim )
-    } ).toDF()
+      Cloud_Product(attr(0).toInt, attr(1).trim, attr(4).trim, attr(5).trim, attr(6).trim)
+    }).toDF()
 
     val cloud_ratingRDD = spark.sparkContext.textFile(CLOUD_RATING_DATA_PATH)
-    val cloud_ratingDF = cloud_ratingRDD.map( item => {
+    val cloud_ratingDF = cloud_ratingRDD.map(item => {
       val attr = item.split(",")
-      Cloud_Rating( attr(0).toInt, attr(1).toInt, attr(2).toDouble, attr(3).toInt )
-    } ).toDF()
+      Cloud_Rating(attr(0).toInt, attr(1).toInt, attr(2).toDouble, attr(3).toInt)
+    }).toDF()
 
 
     //存入数据库。
-    implicit val mongoConfig = MongoConfig( config("mongo.uri"), config("mongo.db") )
-    storeDataInMongoDB( cloud_productDF, cloud_ratingDF )
+    implicit val mongoConfig = MongoConfig(config("mongo.uri"), config("mongo.db"))
+    storeDataInMongoDB(cloud_productDF, cloud_ratingDF)
 
 
     spark.stop()
   }
 
 
-
   /**
    * 将格式化数据储存mongodb中。
+   *
    * @param cloud_productDF product dataformat
    * @param cloud_ratingDF  rating dataformat
-   * @param mongoConfig mongodb configuration
+   * @param mongoConfig     mongodb configuration
    */
-  def storeDataInMongoDB( cloud_productDF: DataFrame, cloud_ratingDF: DataFrame )(implicit mongoConfig: MongoConfig): Unit ={
+  def storeDataInMongoDB(cloud_productDF: DataFrame, cloud_ratingDF: DataFrame)(implicit mongoConfig: MongoConfig): Unit = {
     //环境配置。
-    val mongoClient = MongoClient( MongoClientURI(mongoConfig.uri) )
-    val productCollection = mongoClient( mongoConfig.db )( MONGODB_CLOUD_PRODUCT_COLLECTION )
-    val ratingCollection = mongoClient( mongoConfig.db )( MONGODB_CLOUD_RATING_COLLECTION )
+    val mongoClient = MongoClient(MongoClientURI(mongoConfig.uri))
+    val productCollection = mongoClient(mongoConfig.db)(MONGODB_CLOUD_PRODUCT_COLLECTION)
+    val ratingCollection = mongoClient(mongoConfig.db)(MONGODB_CLOUD_RATING_COLLECTION)
     productCollection.dropCollection()
     ratingCollection.dropCollection()
 
@@ -88,9 +86,9 @@ object DBDataLoader {
       .save()
 
     // 创建索引。
-    productCollection.createIndex( MongoDBObject( "productId" -> 1 ) )
-    ratingCollection.createIndex( MongoDBObject( "productId" -> 1 ) )
-    ratingCollection.createIndex( MongoDBObject( "userId" -> 1 ) )
+    productCollection.createIndex(MongoDBObject("productId" -> 1))
+    ratingCollection.createIndex(MongoDBObject("productId" -> 1))
+    ratingCollection.createIndex(MongoDBObject("userId" -> 1))
 
     mongoClient.close()
   }

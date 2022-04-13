@@ -12,7 +12,6 @@
     <artifactId>cloud_rec</artifactId>
     <packaging>pom</packaging>
     <modules>
-        <module>cloud_loading_data</module>
         <module>cloud_offline_rec</module>
         <module>cloud_ALS_rec</module>
     </modules>
