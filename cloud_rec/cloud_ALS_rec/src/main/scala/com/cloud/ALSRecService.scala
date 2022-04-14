@@ -5,13 +5,9 @@ import org.apache.spark.mllib.recommendation.{ALS, Rating}
 import org.apache.spark.sql.SparkSession
 import org.jblas.DoubleMatrix
 
-
-
-
-
-
-
-
+/**
+ *
+ */
 object ALSRecService {
   
   //表名配置。

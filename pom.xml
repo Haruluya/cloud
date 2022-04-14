@@ -11,6 +11,7 @@
     <modules>
         <module>cloud_rec</module>
         <module>cloud_data_load</module>
+        <module>cloud_kafka_app</module>
     </modules>
 
     <!--    依赖版本声明。-->

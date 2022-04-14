@@ -8,7 +8,10 @@ import org.apache.spark.streaming.kafka010.{ConsumerStrategies, KafkaUtils, Loca
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import redis.clients.jedis.Jedis
 
-
+/**
+ * @author haruluya
+ * 实时推荐服务。
+ */
 object OnlineRecService {
   val DB_RATING_COLLECTION_NAME= "Rating"
   val STREAM_RECS = "StreamRecs"
@@ -21,6 +24,7 @@ object OnlineRecService {
     "mongo.db" -> "recommender",
     "kafka.topic" -> "recommender"
   )
+  //kafaka配置常数。
   val kafkaParam = Map(
     "bootstrap.servers" -> "localhost:9092",
     "key.deserializer" -> classOf[StringDeserializer],
@@ -38,7 +42,6 @@ object OnlineRecService {
     val sparkStreamContext = new StreamingContext(sparkContext, Seconds(2))
     import spark.implicits._
     implicit val mongoConfig = MongoConfig( config("mongo.uri"), config("mongo.db") )
-
 
     // 数据加载。获取商品相似度矩阵。
     val simProductsMatrix = spark.read
@@ -85,10 +88,9 @@ object OnlineRecService {
           val streamRecs = getProductRecScore( candidateProducts, userRecentlyRatings, simProcutsMatrixBroadCast.value )
 
           //存入数据库。
-          saveDataToMongoDB( userId, streamRecs )
+          saveDataToDB( userId, streamRecs )
       }
     }
-
     // 启动streaming
     sparkStreamContext.start()
     println("spark streaming begin:")
@@ -96,10 +98,17 @@ object OnlineRecService {
 
   }
 
-  /**
-   * 从redis里获取最近num次评分
-   */
+
   import scala.collection.JavaConversions._
+
+
+  /**
+   * 从redis中获取最近num次评分数据。
+   * @param num 数据条数
+   * @param userId  用户id
+   * @param jedis redis配置
+   * @return  评分数据列表
+   */
   def getNRecentRatings(num: Int, userId: Int, jedis: Jedis): Array[(Int, Double)] = {
     // key: [uid:USERID]  value: [PRODUCTID:SCORE]
     jedis.lrange( "userId:" + userId.toString, 0, num )
@@ -110,47 +119,58 @@ object OnlineRecService {
       .toArray
   }
 
-  // 获取当前商品的相似列表，并过滤掉用户已经评分过的，作为备选列表
+
+  /**
+   * 获取当前商品的相似列表，并过滤掉用户已经评分过的，作为备选列表
+   * @param num 所需相似商品数量
+   * @param productId 商品id
+   * @param userId  用户id
+   * @param simProducts 商品相似矩阵
+   * @param mongoConfig mongodb配置对象
+   * @return  相似商品列表
+   */
   def getHighSimProducts(num: Int,
                         productId: Int,
                         userId: Int,
                         simProducts: scala.collection.Map[Int, scala.collection.immutable.Map[Int, Double]])
                        (implicit mongoConfig: MongoConfig): Array[Int] ={
-    // 从广播变量相似度矩阵中拿到当前商品的相似度列表
+    // 获取相似度列表。
     val allSimProducts = simProducts(productId).toArray
 
-    // 获得用户已经评分过的商品，过滤掉，排序输出
+    // 过滤已经评分商品。
     val ratingCollection = Connection_Serializable.mongoClient( mongoConfig.db )( DB_RATING_COLLECTION_NAME)
     val ratingExist = ratingCollection.find( MongoDBObject("userId"->userId) )
       .toArray
-      .map{item=> // 只需要productId
+      .map{item=>
         item.get("productId").toString.toInt
       }
-    
-    // 从所有的相似商品中进行过滤
     allSimProducts.filter( x => ! ratingExist.contains(x._1) )
       .sortWith(_._2 > _._2)
       .take(num)
       .map(x=>x._1)
   }
-  
-  
-  // 计算每个备选商品的推荐得分
+
+
+
+  /**
+   * 计算商品的推荐指数。
+   * @param candidateProducts 候选商品。
+   * @param userRecentlyRatings 用户最近评分。
+   * @param simProducts 相似商品。
+   * @return  按得分排序的推荐列表。
+   */
   def getProductRecScore(candidateProducts: Array[Int],
                           userRecentlyRatings: Array[(Int, Double)],
                           simProducts: scala.collection.Map[Int, scala.collection.immutable.Map[Int, Double]]): Array[(Int, Double)] ={
-    // 定义一个长度可变数组ArrayBuffer，用于保存每一个备选商品的基础得分，(productId, score)
     val scores = scala.collection.mutable.ArrayBuffer[(Int, Double)]()
-    // 定义两个map，用于保存每个商品的高分和低分的计数器，productId -> count
     val increMap = scala.collection.mutable.HashMap[Int, Int]()
     val decreMap = scala.collection.mutable.HashMap[Int, Int]()
 
     // 遍历每个备选商品，计算和已评分商品的相似度
     for( candidateProduct <- candidateProducts; userRecentlyRating <- userRecentlyRatings ){
-      // 从相似度矩阵中获取当前备选商品和当前已评分商品间的相似度
       val simScore = getProductsSimScore( candidateProduct, userRecentlyRating._1, simProducts )
       if( simScore > 0.4 ){
-        // 按照公式进行加权计算，得到基础评分
+        // 公式计算。
         scores += ( (candidateProduct, simScore * userRecentlyRating._2) )
         if( userRecentlyRating._2 > 3 ){
           increMap(candidateProduct) = increMap.getOrDefault(candidateProduct, 0) + 1
@@ -159,36 +179,56 @@ object OnlineRecService {
         }
       }
     }
-
-    // 根据公式计算所有的推荐优先级，首先以productId做groupby
     scores.groupBy(_._1).map{
       case (productId, scoreList) =>
         ( productId, scoreList.map(_._2).sum/scoreList.length + log(increMap.getOrDefault(productId, 1)) - log(decreMap.getOrDefault(productId, 1)) )
     }
-      // 返回推荐列表，按照得分排序
       .toArray
       .sortWith(_._2>_._2)
   }
 
-  def getProductsSimScore(product1: Int, product2: Int,
+
+  /**
+   *  获取两个商品之间的相似度。
+   * @param userRatingProduct 用户已经评分商品。
+   * @param candidateProduct 候选商品
+   * @param simProducts 商品相似度矩阵。
+   * @return
+   */
+  def getProductsSimScore(userRatingProduct: Int, candidateProduct: Int,
                           simProducts: scala.collection.Map[Int, scala.collection.immutable.Map[Int, Double]]): Double ={
-    simProducts.get(product1) match {
-        case Some(sims) => sims.get(product2) match {
+    simProducts.get(userRatingProduct) match {
+        case Some(sims) => sims.get(candidateProduct) match {
         case Some(score) => score
         case None => 0.0
       }
       case None => 0.0
     }
   }
-  // 自定义log函数，以N为底
+
+
+
+  /**
+   * log 函数。
+   * @param m 指数。
+   * @return
+   */
   def log(m: Int): Double = {
     val N = 10
     math.log(m)/math.log(N)
   }
-  // 写入mongodb
-  def saveDataToMongoDB(userId: Int, streamRecs: Array[(Int, Double)])(implicit mongoConfig: MongoConfig): Unit ={
+
+
+
+
+  /**
+   *  数据存储至数据库。
+   * @param userId  用户id。
+   * @param streamRecs  推荐流。
+   * @param mongoConfig 配置文件。
+   */
+  def saveDataToDB(userId: Int, streamRecs: Array[(Int, Double)])(implicit mongoConfig: MongoConfig): Unit ={
     val streamRecsCollection = Connection_Serializable.mongoClient(mongoConfig.db)(STREAM_RECS)
-    // 按照userId查询并更新
     streamRecsCollection.findAndRemove( MongoDBObject( "userId" -> userId ) )
     streamRecsCollection.insert( MongoDBObject( "userId" -> userId,
       "recs" -> streamRecs.map(x=>MongoDBObject("productId"->x._1, "score"->x._2)) ) )

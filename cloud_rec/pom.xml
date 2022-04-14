@@ -15,6 +15,9 @@
         <module>cloud_offline_rec</module>
         <module>cloud_ALS_rec</module>
         <module>cloud_online_rec</module>
+        <module>cloud_kafka_app</module>
+        <module>cloud_TF_IDF_rec</module>
+        <module>cloud_Item_CF_rec</module>
     </modules>
 
     <properties>
