@@ -7,7 +7,7 @@ import org.apache.spark.SparkConf
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
- * @author haruluya
+ * @author haruluya 2022/4/3
  * 基于spark sql 的简单离线评分统计，包括：
  * 统计评分次数多-->热门。配合时间戳-->近期热门。平均-->平均评分。
  */

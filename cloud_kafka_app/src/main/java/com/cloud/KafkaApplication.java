@@ -6,7 +6,8 @@ import org.apache.kafka.streams.processor.TopologyBuilder;
 import java.util.Properties;
 
 /**
- * kafka stream的配置类。
+ * kafka stream的处理类。
+ * kafka stream对log topic的数据处理，存放在 recommender topic。
  * @author haruluya
  */
 public class KafkaApplication {
@@ -18,16 +19,15 @@ public class KafkaApplication {
         String from = "log";
         String to = "recommender";
 
-        // 定义kafka stream 配置参数
+        // kafka stream 配置参数
         Properties settings = new Properties();
         settings.put(StreamsConfig.APPLICATION_ID_CONFIG, "logFilter");
         settings.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         settings.put(StreamsConfig.ZOOKEEPER_CONNECT_CONFIG, zookeepers);
 
-        // 创建kafka stream 配置对象
         StreamsConfig config = new StreamsConfig(settings);
 
-        // 定义拓扑构建器
+        // 拓扑构建器
         TopologyBuilder builder = new TopologyBuilder();
         builder.addSource("SOURCE", from)
                 .addProcessor("PROCESSOR", ()->new KafkaLogProcess(), "SOURCE")

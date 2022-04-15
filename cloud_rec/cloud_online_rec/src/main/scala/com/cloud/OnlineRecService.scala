@@ -76,7 +76,7 @@ object OnlineRecService {
     ratingStream.foreachRDD{
       rdds => rdds.foreach{
         case ( userId, productId, score, timestamp ) =>
-          println("rating data coming!>>>>>>>>>>>>>>>>>>")
+          println("rating data__________________")
 
           // 获取redis数据。
           val userRecentlyRatings = getNRecentRatings( MAX_USER_RATING_NUM, userId, Connection_Serializable.jedis )

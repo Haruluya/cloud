@@ -32,7 +32,7 @@
 
 如何寻找适合的隐语义模型的rank,iterations,lambda三个参数？通常的做法是计算均方根误差（RMSE），考察预测评分与实际评分之间的误差。
 
-​![img](src/main/resources/iamges/wps2FB8.tmp.jpg) 
+![img](src/main/resources/iamges/wps2FB8.tmp.jpg) 
 
 有了RMSE，我们可以就可以通过多次调整参数值，来选取RMSE最小的一组作为我们模型的优化选择。
 
@@ -42,7 +42,6 @@ Spark中ALS的api为：
 
 ```scala
 ALS.train( alsTrainedData, rank, iterations, lambda )
-
 ```
 
 **alsTrainedData:**
