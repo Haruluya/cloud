@@ -13,8 +13,8 @@ import redis.clients.jedis.Jedis
  * 实时推荐服务。
  */
 object OnlineRecService {
-  val DB_RATING_COLLECTION_NAME= "Rating"
-  val STREAM_RECS = "StreamRecs"
+  val DB_RATING_COLLECTION_NAME= "Cloud_Rating"
+  val STREAM_RECS = "onlineRecs"
   val PRODUCT_RECS = "Cloud_Similarity_Product"
   val MAX_USER_RATING_NUM = 20
   val MAX_SIM_PRODUCTS_NUM = 20
