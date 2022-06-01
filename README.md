@@ -25,7 +25,14 @@
 
 ## Deployment method
 
-## Meaning of project
+**Pull** the project:
+
+```shell
+git pull https://github.com/Haruluya/cloud.git master
+```
+
+**Install** dependencies.
+**Run** the Project.
 
 ## Function Introduction
 
@@ -53,7 +60,7 @@
 
 **基于隐语义模型的协同过滤推荐模块**
 
-此模块基于隐语义模型的协同过滤算法，根据数据库中的用户对各产品的评分，计算非实时的商品推荐列表和各商品相似度矩阵。
+此模块基于隐语义模型的协同过滤算法，根据数据库中的用户对各产品的评分，计算非实时的商品推荐列表和各商品相似度矩阵。其中离线的用户推荐列表是模型对（uid,pid）的评分预测结果。
 
 #### Cloud_Item_CF_res
 
@@ -67,6 +74,8 @@
 
 此模块完成基本的热门统计，复杂性低，只是简单的利用spark sql统计评分次数多的商品，近期评分次数多的商品，和商品的平均评分。此功能并非必须在此系统中完成，但是借助spark sql会更为简单。
 
+
+
 #### Cloud_online_rec
 
 **基于实时推荐模型的实时推荐**
@@ -77,7 +86,7 @@
 
 ## Presentation
 
-## Contribution
+
 
 ## Contact Author 
 
