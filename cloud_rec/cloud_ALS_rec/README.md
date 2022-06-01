@@ -6,7 +6,7 @@
 
 ### ALS
 
-“ALS是一种协同算法，其全称是交替最小二乘法（Alternating Least Squares），由于简单高效，已被广泛应用在推荐场景中，目前已经被集成到Spark MLlib和ML库中。”
+“ALS是 一种协同算法，其全称是交替最小二乘法（Alternating Least Squares），由于简单高效，已被广泛应用在推荐场景中，目前已经被集成到Spark MLlib和ML库中。”
 
 #### **ALS在推荐系统中的应用**
 

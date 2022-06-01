@@ -8,10 +8,10 @@
 
 依靠spark sql的基本语法可以简单的完成需求。
 
-**mongoDB配置：**
+**mongoDB配置：** 
 
 ```scala
-    val config = Map(
+    val config  = Map(
       "spark.cores" -> "local[*]",
       "mongo.uri" -> "mongodb://localhost:27017/cloud",
       "mongo.db" -> "cloud"
